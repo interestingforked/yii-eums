@@ -21,6 +21,7 @@ class EumsUser extends CActiveRecord
 {
 
   public $password_confirm;
+  public $captcha;
 
   protected $password_shadow;
 
@@ -39,17 +40,12 @@ class EumsUser extends CActiveRecord
     return $this->active && (md5($password.$this->salt) == $this->password);
   }
 
-  public function validAuth($attribute,$param) {
-    $user = EumsUser::model()->findByAttributes(array('username'=>$this->username));
-    if ($user !== null && $user->authenticate($this->password)) return true;
-    $this->addError("password", "Incorrect Password");
-  }
-
   protected function beforeValidate() {
     if (parent::beforeValidate()) {
       if (
         $this->getScenario() != "resetpassword" &&
         $this->getScenario() != "registration" &&
+        $this->getScenario() != "login" &&
         $this->password != $this->password_shadow)
       {
         $this->addError("password", "Password Changes");
@@ -61,6 +57,7 @@ class EumsUser extends CActiveRecord
 
   protected function beforeSave() {
     if (parent::beforeSave()) {
+      if ($this->getScenario() == "login") return false;
       if ($this->getIsNewRecord() && empty($this->salt)) {
         $this->salt = md5(time());
       }
@@ -104,11 +101,12 @@ class EumsUser extends CActiveRecord
 		// will receive user inputs.
 		return array(
 			array('username, first_name, last_name, email, password, password_confirm', 'required', 'on'=>'registration'),
+      array('captcha', 'captcha', 'on'=>'registration', 'allowEmpty' => YII_DEBUG),
       array('password, password_confirm', 'required', 'on'=>'resetpassword'),
       array('password', 'compare', 'compareAttribute'=>'password_confirm', 'on'=>'resetpassword, registration'),
+      array('email, username', 'unique', 'on'=>'resetpassword, registration, update, insert'),
       array('username, password', 'required', 'on'=>'login'),
-      array('password', 'validAuth', 'on'=>'login'),
-      array('email, username', 'unique'),
+      array('username, activation', 'safe', 'on'=>'accountactivation'),
 		);
 	}
 

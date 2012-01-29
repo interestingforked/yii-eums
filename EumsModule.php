@@ -2,15 +2,15 @@
 
 class EumsModule extends CWebModule
 {
+  public $formBuilder;
+
 	public function init()
 	{
-		// this method is called when the module is being created
-		// you may place code here to customize the module or the application
-
 		// import the module-level models and components
 		$this->setImport(array(
 			'eums.models.*',
 			'eums.components.*',
+      'eums.actions.user.*',
 		));
 	}
 
@@ -28,7 +28,9 @@ class EumsModule extends CWebModule
 
   public function buildForm($formConfiguration, $model) {
     if (is_string($formConfiguration)) {
-      $file = Yii::app()->controller->getViewFile('/forms'.$formConfiguration);
+      $file = Yii::app()->controller->getViewFile('/forms/'.str_replace('.','/',$formConfiguration));
+      if (empty($file)) $file = Yii::app()->controller->getViewFile('eums.views.forms.'.str_replace('/','.',$formConfiguration));
+      if (empty($file)) throw new CHttpException(500, 'Form view: '.$formConfiguration.' not found');
       $formConfiguration = include($file);
     }
     if (isset($this->formBuilder) && is_array($this->formBuilder)) return Yii::createComponent($this->formBuilder, $formConfiguration, $model);

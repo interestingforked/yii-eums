@@ -1,6 +1,4 @@
 <?php
-Yii::setPathOfAlias('eums', dirname(__FILE__).'/../../');
-
 Yii::import('eums.migrations.*');
 $files = CFileHelper::findFiles(
   dirname(__FILE__).'/../../migrations',

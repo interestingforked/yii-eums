@@ -19,6 +19,7 @@ class m120127_043004_create_user_tables extends CDbMigration
       'last_visited'=>'datetime',
     ));
     $this->createIndex("eums_user_username_uidx", "{{eums_user}}", "username", true);
+    $this->createIndex("eums_user_activation_uidx", "{{eums_user}}", "activation", false);
     if (strpos($this->getDbConnection()->getDriverName(), "mysql") !== false) {
       $this->getDbConnection()->createCommand("ALTER TABLE {{eums_user}} ENGINE = INNODB")->execute();
     }

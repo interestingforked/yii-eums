@@ -1,0 +1,48 @@
+<?php
+$captcha = Yii::app()->controller->widget(
+  "CCaptcha",
+  array(
+    'clickableImage'=>true,
+    'buttonOptions'=>array(
+      'id'=>'refreshCaptcha',
+    ),
+  ),
+  true
+);
+$captcha = "<div class='input'>$captcha</div>";
+return array(
+  'attributes'=>array(
+    'id'=>'user-register-form'
+  ),
+  'elements'=>array(
+    'username'=>array(
+      'type'=>'text',
+    ),
+    'first_name'=>array(
+      'type'=>'text',
+    ),
+    'last_name'=>array(
+      'type'=>'text',
+    ),
+    'email'=>array(
+      'type'=>'text',
+    ),
+    'password'=>array(
+      'type'=>'password',
+    ),
+    'password_confirm'=>array(
+      'type'=>'password',
+    ),
+    $captcha,
+    'captcha'=>array(
+      'type'=>'text',
+    ),
+  ),
+  'buttons'=>array(
+    'submit'=>array(
+      'type'=>'submit',
+      'label'=>'Register',
+      'class'=>'primary',
+    ),
+  ),
+);

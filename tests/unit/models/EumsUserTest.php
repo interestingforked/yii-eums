@@ -1,12 +1,26 @@
 <?php
 
-include_once(dirname(__FILE__).'/../../models/EumsUser.php');
+Yii::import('eums.models.*');
 
 class EumsUserTest extends CDbTestCase
 {
 	public $fixtures=array(
 		'eumsUsers'=>'EumsUser',
 	);
+
+  /**
+   * Mockup a Captcha.
+   *
+   * @return CCaptchaAction
+   */
+  protected function mockupCaptcha() {
+    $c = $this->getMock("CController", array("actions"), array("test"));
+    $c->expects($this->any())
+      ->method("actions")
+      ->will($this->returnValue(array("captcha"=>"CCaptchaAction")));
+    Yii::app()->controller = $c;
+    return new CCaptchaAction(Yii::app()->controller, 'captcha');
+  }
 
 	public function testOnRegistration() {
     $user = new EumsUser("registration");
@@ -18,8 +32,8 @@ class EumsUserTest extends CDbTestCase
       'password_confirm'=>'asd',
       'email'=>'tester0@test.com',
     ));
-    //$this->assertTrue($user->save());
-    $user->save();
+    $user->captcha = $this->mockupCaptcha()->verifyCode;
+    $this->assertTrue($user->save());
     $this->assertGreaterThan(0, strlen($user->activation));
     $this->assertFalse($user->active);
 	}
@@ -34,6 +48,7 @@ class EumsUserTest extends CDbTestCase
       'password_confirm'=>'asd123',
       'email'=>'tester0@test.com',
     ));
+    $user->captcha = $this->mockupCaptcha()->verifyCode;
     $this->assertFalse($user->save());
   }
 
@@ -47,6 +62,7 @@ class EumsUserTest extends CDbTestCase
       'password_confirm'=>'asd',
       'email'=>'tester1@test.com',
     ));
+    $user->captcha = $this->mockupCaptcha()->verifyCode;
     $this->assertFalse($user->save());
   }
 
