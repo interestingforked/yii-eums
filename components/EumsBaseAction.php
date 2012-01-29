@@ -93,6 +93,12 @@ class EumsBaseAction extends CAction
     return $parameters;
   }
 
+  protected function getForm($formName, $model) {
+    $form = $this->getModule()->buildForm($formName, $model);
+    $this->onGetForm(new CEvent($this, array('form'=>$form, 'formName'=>$formName, 'model'=>$model)));
+    return $form;
+  }
+
   public function redirect($url) {
     if (Yii::app()->getRequest()->getIsAjaxRequest()) {
       echo json_encode(array('redirect'=>Yii::app()->createAbsoluteUrl($url)));
@@ -102,9 +108,18 @@ class EumsBaseAction extends CAction
   }
 
   /**
+   * Event raised on getForm operation
+   *
+   * @param CEvent $event with CForm form, string formName and CModel model
+   */
+  public function onGetForm($event) {
+    $this->raiseEvent("onGetForm", $event);
+  }
+
+  /**
    * Event raised after rendering
    *
-   * @param CEvent $event with output as reference and view and parameters
+   * @param CEvent $event with string output as reference and string view and array parameters
    */
   public function onAfterRender($event) {
     $this->raiseEvent("onAfterRender", $event);
@@ -113,7 +128,7 @@ class EumsBaseAction extends CAction
   /**
    * Event raised before rendering
    *
-   * @param CEvent $event with view and parameters as reference
+   * @param CEvent $event with string view and array parameters as reference
    */
   public function onBeforeRender($event) {
     $this->raiseEvent("onBeforeRender", $event);

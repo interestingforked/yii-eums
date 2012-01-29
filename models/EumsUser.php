@@ -44,11 +44,12 @@ class EumsUser extends CActiveRecord
     if (parent::beforeValidate()) {
       if (
         $this->getScenario() != "resetpassword" &&
+        $this->getScenario() != "resetforgotpassword" &&
         $this->getScenario() != "registration" &&
         $this->getScenario() != "login" &&
         $this->password != $this->password_shadow)
       {
-        $this->addError("password", "Password Changes");
+        $this->addError("password", "Invalid Password Changes");
         return false;
       }
       return true;
@@ -59,14 +60,17 @@ class EumsUser extends CActiveRecord
     if (parent::beforeSave()) {
       if ($this->getScenario() == "login") return false;
       if ($this->getIsNewRecord() && empty($this->salt)) {
-        $this->salt = md5(time());
+        $this->salt = md5(time()*rand(1,1000));
       }
-      if ($this->getScenario() == "resetpassword" || $this->getScenario() == "registration") {
+      if ($this->getScenario() == "resetforgotpassword" || $this->getScenario() == "resetpassword" || $this->getScenario() == "registration") {
         $this->password = md5($this->password.$this->salt);
       }
       if ($this->getScenario() == "registration") {
         $this->active = false;
-        $this->activation = md5($this->password.'registration');
+        $this->activation = md5(rand(1,1000).$this->password.'registration');
+      }
+      if ($this->getScenario() == "forgotpassword") {
+        $this->activation = md5(rand(1,1000).$this->username).':'.md5(rand(1,1000).$this->password.'forgotpassword');
       }
       if ($this->getIsNewRecord()) {
         $this->date_created = date('Y-m-d H:i:s');
@@ -102,11 +106,12 @@ class EumsUser extends CActiveRecord
 		return array(
 			array('username, first_name, last_name, email, password, password_confirm', 'required', 'on'=>'registration'),
       array('captcha', 'captcha', 'on'=>'registration', 'allowEmpty' => YII_DEBUG),
-      array('password, password_confirm', 'required', 'on'=>'resetpassword'),
-      array('password', 'compare', 'compareAttribute'=>'password_confirm', 'on'=>'resetpassword, registration'),
+      array('password, password_confirm', 'required', 'on'=>'resetpassword, resetforgotpassword'),
+      array('password', 'compare', 'compareAttribute'=>'password_confirm', 'on'=>'resetpassword, registration, resetforgotpassword'),
       array('email, username', 'unique', 'on'=>'resetpassword, registration, update, insert'),
       array('username, password', 'required', 'on'=>'login'),
       array('username, activation', 'safe', 'on'=>'accountactivation'),
+      array('email', 'required', 'on'=>'forgotpassword'),
 		);
 	}
 

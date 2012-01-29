@@ -7,6 +7,7 @@ class UserController extends Controller
     return array(
       'login'=>'eums.actions.user.PasswordLoginAction',
       'register'=>'eums.actions.user.RegistrationAction',
+      'forgot'=>'eums.actions.user.ForgotPasswordAction',
       'captcha'=>'CCaptchaAction',
     );
   }

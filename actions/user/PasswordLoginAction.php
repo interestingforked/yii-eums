@@ -2,17 +2,20 @@
 
 class PasswordLoginAction extends EumsBaseAction
 {
+  public $defaultHome = "/";
+
   public function run() {
     $user = new EumsUser("login");
-    $form = $this->getModule()->buildForm('user.login', $user);
+    $form = $this->getForm('user.login', $user);
     if ($form->submitted() && $form->validate()) {
       $model = $form->getModel();
       $identity=new PasswordBasedUserIdentity($model->username,$model->password);
       if($identity->authenticate()) {
         Yii::app()->user->login($identity);
-        /** @var $user CWebUser */
-        $user = Yii::app()->user;
-        $this->redirect($user->getState("home"));
+        $eumsUser = EumsUser::model()->findByAttributes(array('username'=>$model->username));
+        $eumsUser->last_visited = date('Y-m-d H:i:s');
+        $eumsUser->save();
+        $this->redirect(Yii::app()->user->getState("home", $this->defaultHome));
       } else {
         $model->addError("password", $this->getIdentityErrorMessage($identity->errorCode));
       }

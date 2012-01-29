@@ -26,7 +26,7 @@ class RegistrationAction extends EumsBaseAction
 
   protected function actionConfirm() {
     $user = new EumsUser("accountactivation");
-    $form = $this->getModule()->buildForm('user.accountactivation', $user);
+    $form = $this->getForm('user.accountactivation', $user);
     if ($form->submitted() && $form->validate()) {
       $user = EumsUser::model()->findByAttributes(array(
         'activation'=>$user->activation,
@@ -36,27 +36,27 @@ class RegistrationAction extends EumsBaseAction
         $user->activation = null;
         $user->active = 1;
         if ($user->save()) {
+          $this->onRegisterConfirm(new CEvent($this, array('user'=>$user)));
           /** @var $user CWebUser */
           $user = Yii::app()->user;
           $user->setFlash("info", "Account activated. Please login");
           $this->redirect($this->loginUrl);
         }
       }
-      var_dump($user->getErrors());
       /** @var $user CWebUser */
       $user = Yii::app()->user;
       $user->setFlash("error", "Could not activate your account. Please try again later.");
     }
-    $this->render("user.accountactivation", array('form'=>$form));
+    $this->render("user.registration", array('form'=>$form));
   }
 
   protected function actionIndex() {
     $user = new EumsUser("registration");
-    $form = $this->getModule()->buildForm('user.register', $user);
+    $form = $this->getForm('user.register', $user);
     if ($form->submitted() && $form->validate()) {
       $model = $form->getModel();
-      if ($model->save()) {
-        $this->sendActivationEmail($model);
+      if ($model->save()  && $this->sendActivationEmail($model)) {
+        $this->onRegistered(new CEvent($this, array('user'=>$model)));
         /** @var $user CWebUser */
         $user = Yii::app()->user;
         $user->setFlash("info", "Registration successful. Please check your mailbox for activation email");
@@ -71,11 +71,29 @@ class RegistrationAction extends EumsBaseAction
   }
 
   /**
+   * On Registration confirmed.
+   *
+   * @param CEvent $event with CModel user
+   */
+  public function onRegisterConfirm($event) {
+    $this->raiseEvent('onRegisterConfirm', $event);
+  }
+
+  /**
+   * On Registration Success.
+   * @param CEvent $event with CModel user
+   */
+  public function onRegistered($event) {
+    $this->raiseEvent('onRegistered', $event);
+  }
+
+  /**
    * Method to send activation email
    *
    * @todo
    * @param EumsUser $user
    */
   protected function sendActivationEmail($user) {
+    return true;
   }
 }
