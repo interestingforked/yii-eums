@@ -33,6 +33,7 @@ class EumsBaseAction extends CAction
       if (count($flashes) > 0) {
         $parameters['flashes'] = $flashes;
       }
+      $this->onBeforeRender(new CEvent($this, array('view'=>&$view, 'parameters'=>&$parameters)));
       if ($return) return json_encode($parameters);
       else echo json_encode($parameters);
     } else {
@@ -46,11 +47,20 @@ class EumsBaseAction extends CAction
         if (!empty($file)) $view = 'eums.views.actions.'.str_replace('/','.',$view);
       }
       if (empty($file)) throw new CHttpException(500, 'View: '.$view.' not found');
-      if (Yii::app()->getRequest()->getIsAjaxRequest()) {
-        return Yii::app()->controller->renderPartial($view, $parameters, $return);
+      $this->onBeforeRender(new CEvent($this, array('view'=>&$view, 'parameters'=>&$parameters)));
+      if ($this->hasEventHandler("onAfterRender")) {
+        $overrideReturn = true;
       } else {
-        return Yii::app()->controller->render($view, $parameters, $return);
+        $overrideReturn = $return;
       }
+      if (Yii::app()->getRequest()->getIsAjaxRequest()) {
+        $result = Yii::app()->controller->renderPartial($view, $parameters, $overrideReturn);
+      } else {
+        $result = Yii::app()->controller->render($view, $parameters, $overrideReturn);
+      }
+      $this->onAfterRender(new CEvent($this, array('output'=>&$result, 'view'=>$view, 'parameters'=>$parameters)));
+      if ($return) return $result;
+      else echo $result;
     }
   }
 
@@ -89,5 +99,23 @@ class EumsBaseAction extends CAction
     } else {
       Yii::app()->controller->redirect($url);
     }
+  }
+
+  /**
+   * Event raised after rendering
+   *
+   * @param CEvent $event with output as reference and view and parameters
+   */
+  public function onAfterRender($event) {
+    $this->raiseEvent("onAfterRender", $event);
+  }
+
+  /**
+   * Event raised before rendering
+   *
+   * @param CEvent $event with view and parameters as reference
+   */
+  public function onBeforeRender($event) {
+    $this->raiseEvent("onBeforeRender", $event);
   }
 }
