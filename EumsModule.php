@@ -3,6 +3,18 @@
 class EumsModule extends CWebModule
 {
   public $formBuilder;
+  public $oauth;
+
+  protected $oauthProvider = array(
+    'twitter'=>array(
+      'scope'=>'https://api.twitter.com',
+      'provider'=>array(
+        'request'=>'https://api.twitter.com/oauth/request_token',
+        'authorize'=>'https://api.twitter.com/oauth/authorize',
+        'access'=>'https://api.twitter.com/oauth/access_token',
+      ),
+    ),
+  );
 
 	public function init()
 	{
@@ -11,6 +23,8 @@ class EumsModule extends CWebModule
 			'eums.models.*',
 			'eums.components.*',
       'eums.actions.user.*',
+      'eums.extensions.eoauth.*',
+      'eums.extensions.eoauth.lib.*',
 		));
 	}
 
@@ -35,5 +49,23 @@ class EumsModule extends CWebModule
     }
     if (isset($this->formBuilder) && is_array($this->formBuilder)) return Yii::createComponent($this->formBuilder, $formConfiguration, $model);
     else return new CForm($formConfiguration, $model);
+  }
+
+  /**
+   * Get OAuth User Identity
+   *
+   * @param string $type e.g twitter, facebook, google
+   * @return EOAuthUserIdentity|null
+   */
+  public function getOAuthUserIdentity($type) {
+    $identity = null;
+    if (isset($this->oauth[$type])) {
+      if (isset($this->oauthProvider[$type])) {
+        $identity = new EOAuthUserIdentity(CMap::mergeArray($this->oauth[$type], $this->oauthProvider[$type]));
+      } else {
+        $identity = new EOAuthUserIdentity(CMap::mergeArray($this->oauth[$type], $this->oauthProvider[$type]));
+      }
+    }
+    return $identity;
   }
 }

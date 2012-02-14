@@ -9,6 +9,10 @@ class UserController extends Controller
       'register'=>'eums.actions.user.RegistrationAction',
       'forgot'=>'eums.actions.user.ForgotPasswordAction',
       'captcha'=>'CCaptchaAction',
+      'twitter'=>array(
+        'class'=>'eums.actions.OAuthAction',
+        'type'=>'twitter',
+      ),
     );
   }
 }

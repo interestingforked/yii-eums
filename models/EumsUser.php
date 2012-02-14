@@ -16,6 +16,9 @@
  * @property string $home
  * @property string $date_created
  * @property string $last_visited
+ *
+ * Relationship
+ * @property EumsOauth[] $eums_oauth
  */
 class EumsUser extends CActiveRecord
 {
@@ -93,7 +96,7 @@ class EumsUser extends CActiveRecord
 	 */
 	public function tableName()
 	{
-		return 'eums_user';
+		return '{{eums_user}}';
 	}
 
 	/**
@@ -123,6 +126,7 @@ class EumsUser extends CActiveRecord
 		// NOTE: you may need to adjust the relation name and the related
 		// class name for the relations automatically generated below.
 		return array(
+      'eums_oauth'=>array(self::HAS_MANY, 'EumsOauth', 'user_id'),
 		);
 	}
 
