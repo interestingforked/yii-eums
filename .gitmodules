@@ -1,0 +1,3 @@
+[submodule "eauth"]
+	path = extensions/eauth
+	url = https://jamesmoey@github.com/jamesmoey/yii-eauth.git
